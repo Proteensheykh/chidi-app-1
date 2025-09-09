@@ -19,7 +19,14 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/features/*": ["./features/*"],
+      "@/features/shared/*": ["./features/shared/*"],
+      "@/features/shared/ui/*": ["./features/shared/ui/*"],
+      "@/features/shared/utils/*": ["./features/shared/utils/*"],
+      "@/features/shared/utils/utils": ["./features/shared/utils/utils.ts"],
+      "@/features/shared/layout/*": ["./features/shared/layout/*"],
+      "@/features/shared/hooks/*": ["./features/shared/hooks/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
