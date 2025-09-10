@@ -22,7 +22,7 @@ interface Order {
   }>
   total: string
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled"
-  paymentStatus: "unpaid" | "paid" | "refunded"
+  paymentStatus: "paid" | "pending" | "failed" | "refunded"
   orderDate: string
   deliveryDate?: string
   notes?: string
@@ -85,7 +85,9 @@ export function OrdersTab({
     switch (status) {
       case "paid":
         return "bg-green-100 text-green-800"
-      case "unpaid":
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      case "failed":
         return "bg-red-100 text-red-800"
       case "refunded":
         return "bg-gray-100 text-gray-800"
