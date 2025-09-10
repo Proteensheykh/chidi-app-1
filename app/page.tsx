@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button, Avatar, AvatarFallback } from "@/features/shared/ui"
-import { Zap, WifiOff, Bell } from "lucide-react"
+import { WifiOff, Bell } from "lucide-react"
 // Import from feature folders
 import { BottomNav } from "@/features/shared/layout"
 import { HomeTab } from "@/features/home/components"
@@ -24,7 +24,7 @@ import { Product, INITIAL_PRODUCTS } from "@/features/catalogue/types";
 import { useProducts } from "@/features/catalogue/hooks/useProducts";
 import { Customer, INITIAL_CUSTOMERS } from "@/features/customers/types";
 import { useCustomers } from "@/features/customers/hooks/useCustomers";
-import { Order, OrderStatus, INITIAL_ORDERS } from "@/features/orders/types";
+import { Order, INITIAL_ORDERS } from "@/features/orders/types";
 import { useOrders } from "@/features/orders/hooks/useOrders";
 import { INITIAL_CONVERSATIONS } from "@/features/chat/types";
 
@@ -68,9 +68,7 @@ export default function ChidiApp() {
   // Use the customer hook
   const { 
     customers, 
-    addCustomer, 
-    updateCustomer, 
-    updateCustomerStatus, 
+    addCustomer,  
     updateCustomerOrderStats, 
     setCustomers 
   } = useCustomers({ addNotification })
@@ -87,7 +85,6 @@ export default function ChidiApp() {
     orders, 
     createOrder, 
     updateOrderStatus, 
-    updatePaymentStatus, 
     setOrders 
   } = useOrders({ 
     addNotification, 
@@ -180,10 +177,10 @@ export default function ChidiApp() {
     setCurrentPage("main")
   }
 
-  const handleDeleteProducts = (productIds: number[]) => {
-    // Use the deleteProducts function from the product hook
-    deleteProducts(productIds)
-  }
+  // const handleDeleteProducts = (productIds: number[]) => {
+  //   // Use the deleteProducts function from the product hook
+  //   deleteProducts(productIds)
+  // }
 
   const handleSignOut = () => {
     // Reset app state

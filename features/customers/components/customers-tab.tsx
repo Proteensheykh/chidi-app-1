@@ -82,7 +82,7 @@ export function CustomersTab({ customers, onAddCustomer, onViewCustomer, onEditC
         <div>
           <h2 className="text-xl font-semibold">Customers</h2>
           <p className="text-sm text-muted-foreground">{customers.length} total customers</p>
-          <p className="text-xs text-muted-foreground text-green-600">✨ Synced from WhatsApp & Instagram</p>
+          <p className="text-xs text-muted-foreground">✨ Synced from WhatsApp & Instagram</p>
         </div>
         <Button onClick={onAddCustomer} size="sm" variant="outline">
           <Plus className="w-4 h-4 mr-1" />
