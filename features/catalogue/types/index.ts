@@ -1,4 +1,4 @@
-export type ProductStatus = "low" | "good" | "out";
+export type ProductStatus = "low-stock" | "in-stock" | "out-of-stock";
 export type ProductCategory = "clothing" | "accessories" | "electronics" | string;
 
 export interface Product {

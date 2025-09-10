@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Notification } from '../types';
 import { checkStockLevels, createNotification } from '../services/notification-service';
-import { Product } from '../../inventory/types';
+import { Product } from '../../catalogue/types';
 
 interface UseNotificationsProps {
   initialProducts?: Product[];

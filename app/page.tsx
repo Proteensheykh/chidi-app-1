@@ -6,7 +6,7 @@ import { Zap, WifiOff, Bell } from "lucide-react"
 // Import from feature folders
 import { BottomNav } from "@/features/shared/layout"
 import { HomeTab } from "@/features/home/components"
-import { CatalogTab, AddProductPage, ProductDetailPage, QuickEditPage } from "@/features/inventory/components"
+import { CatalogTab, AddProductPage, ProductDetailPage, QuickEditPage } from "@/features/catalogue/components"
 import { SalesTab, RevenueDashboardPage } from "@/features/sales/components"
 import { ConversationsPage } from "@/features/chat/components"
 import { NotificationsPage } from "@/features/notifications/components"
@@ -19,8 +19,8 @@ import { Onboarding, ProfileEditPage } from "@/features/user/components"
 import { Notification } from "@/features/notifications/types";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
 import { createNotification } from "@/features/notifications/services/notification-service";
-import { Product } from "@/features/inventory/types";
-import { useProducts } from "@/features/inventory/hooks/useProducts";
+import { Product } from "@/features/catalogue/types";
+import { useProducts } from "@/features/catalogue/hooks/useProducts";
 import { Customer } from "@/features/customers/types";
 import { useCustomers } from "@/features/customers/hooks/useCustomers";
 import { Order, OrderStatus } from "@/features/orders/types";
@@ -69,7 +69,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: "Wristwatch",
     stock: 1,
     price: "₦22,000",
-    status: "low" as const,
+    status: "low-stock" as const,
     category: "accessories",
     image: "/wristwatch.jpg",
   },

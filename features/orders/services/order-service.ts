@@ -1,7 +1,7 @@
 import { Order, OrderStatus, PaymentStatus } from '../types';
 import { createNotification } from '../../notifications/services/notification-service';
 import { Notification } from '../../notifications/types';
-import { Product } from '../../inventory/types';
+import { Product } from '../../catalogue/types';
 
 /**
  * Creates a new order and generates a notification

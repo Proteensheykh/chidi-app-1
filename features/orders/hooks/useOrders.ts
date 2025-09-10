@@ -6,7 +6,7 @@ import {
   updatePaymentStatus as updatePaymentStatusService,
   updateStockFromOrder as updateStockFromOrderService
 } from '../services/order-service';
-import { Product } from '../../inventory/types';
+import { Product } from '../../catalogue/types';
 import { updateCustomerOrderStats } from '../../customers/services/customer-service';
 
 interface UseOrdersProps {
