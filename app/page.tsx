@@ -6,7 +6,7 @@ import { Zap, WifiOff, Bell } from "lucide-react"
 // Import from feature folders
 import { BottomNav } from "@/features/shared/layout"
 import { HomeTab } from "@/features/home/components"
-import { CatalogTab, AddProductPage, ProductDetailPage, QuickEditPage } from "@/features/products/components"
+import { CatalogTab, AddProductPage, ProductDetailPage, QuickEditPage } from "@/features/inventory/components"
 import { SalesTab, RevenueDashboardPage } from "@/features/sales/components"
 import { ConversationsPage } from "@/features/chat/components"
 import { NotificationsPage } from "@/features/notifications/components"
@@ -15,31 +15,43 @@ import { CustomersTab, AddCustomerPage, CustomerDetailPage } from "@/features/cu
 import { SettingsTab, BusinessHoursPage, TemplateResponsesPage, IntegrationSimulationPage, DataExportPage } from "@/features/settings/components"
 import { Onboarding, ProfileEditPage } from "@/features/user/components"
 
-const INITIAL_PRODUCTS = [
+// Import types from feature modules
+import { Notification } from "@/features/notifications/types";
+import { useNotifications } from "@/features/notifications/hooks/useNotifications";
+import { createNotification } from "@/features/notifications/services/notification-service";
+import { Product } from "@/features/inventory/types";
+import { useProducts } from "@/features/inventory/hooks/useProducts";
+import { Customer } from "@/features/customers/types";
+import { useCustomers } from "@/features/customers/hooks/useCustomers";
+import { Order, OrderStatus } from "@/features/orders/types";
+import { useOrders } from "@/features/orders/hooks/useOrders";
+import { AIConversation, INITIAL_CONVERSATIONS } from "@/features/chat/types";
+
+const INITIAL_PRODUCTS: Product[] = [
   {
     id: 1,
     name: "Blue Ankara Dress",
     stock: 2,
     price: "₦15,000",
-    status: "low",
+    status: "low" as const,
     category: "clothing",
     image: "/blue-ankara-dress.png",
   },
   {
     id: 2,
     name: "Casual Sneakers",
-    stock: 15,
+    stock: 5,
     price: "₦25,000",
-    status: "good",
-    category: "accessories",
+    status: "in-stock" as const,
+    category: "footwear",
     image: "/casual-sneakers.png",
   },
   {
     id: 3,
     name: "Leather Handbag",
-    stock: 8,
+    stock: 3,
     price: "₦35,000",
-    status: "good",
+    status: "in-stock" as const,
     category: "accessories",
     image: "/leather-handbag.png",
   },
@@ -48,68 +60,77 @@ const INITIAL_PRODUCTS = [
     name: "Wireless Earbuds",
     stock: 0,
     price: "₦18,000",
-    status: "out",
+    status: "out-of-stock" as const,
     category: "electronics",
-    image: "/wireless-earbuds.png",
+    image: "/wireless-earbuds.jpg",
+  },
+  {
+    id: 5,
+    name: "Wristwatch",
+    stock: 1,
+    price: "₦22,000",
+    status: "low" as const,
+    category: "accessories",
+    image: "/wristwatch.jpg",
   },
 ]
 
-const INITIAL_CUSTOMERS = [
+const INITIAL_CUSTOMERS: Customer[] = [
   {
     id: 1,
     name: "Jane Adebayo",
     phone: "+234 801 234 5678",
     email: "jane.adebayo@email.com",
     location: "Lagos, Nigeria",
-    totalOrders: 12,
-    totalSpent: "₦285,000",
-    lastOrder: "2 days ago",
+    totalOrders: 5,
+    totalSpent: "₦150,000",
     status: "vip" as const,
-    notes: "Prefers WhatsApp communication. Regular customer. Loves Ankara styles.",
+    notes: "Regular customer, prefers evening deliveries",
+    lastOrder: "3 days ago",
     joinDate: "Oct 2023",
-    image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+    image: "/customers/jane.jpg",
   },
   {
     id: 2,
-    name: "Mike Johnson",
+    name: "Oluwaseun Olatunji",
     phone: "+234 802 345 6789",
-    email: "mike.j@email.com",
+    email: "seun.ola@email.com",
     location: "Abuja, Nigeria",
-    totalOrders: 7,
-    totalSpent: "₦175,000",
-    lastOrder: "1 week ago",
+    totalOrders: 3,
+    totalSpent: "₦75,000",
     status: "active" as const,
-    notes: "Interested in sneakers and electronics. Corporate buyer.",
+    notes: "New customer, referred by Jane",
+    lastOrder: "1 week ago",
     joinDate: "Nov 2023",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+    image: "/customers/seun.jpg",
   },
   {
     id: 3,
-    name: "Sarah Okafor",
+    name: "Chioma Eze",
     phone: "+234 803 456 7890",
-    email: "sarah.okafor@email.com",
+    email: "chioma.eze@email.com",
     location: "Port Harcourt, Nigeria",
-    totalOrders: 4,
-    totalSpent: "₦95,000",
+    totalOrders: 8,
+    totalSpent: "₦230,000",
+    status: "vip" as const,
+    notes: "Wholesale buyer, always pays on time",
     lastOrder: "3 days ago",
-    status: "active" as const,
-    notes: "Fashion enthusiast. Prefers Instagram communication.",
     joinDate: "Dec 2023",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    image: "/customers/chioma.jpg",
   },
   {
     id: 4,
-    name: "David Emeka",
+    name: "Emeka Okafor",
     phone: "+234 804 567 8901",
-    email: "david.emeka@email.com",
+    email: "emeka.o@email.com",
     location: "Enugu, Nigeria",
-    totalOrders: 15,
-    totalSpent: "₦420,000",
+    totalOrders: 1,
+    totalSpent: "₦15,000",
+    status: "active" as const,
+    notes: "First purchase on January 15",
     lastOrder: "3 months ago",
-    status: "inactive" as const,
-    notes: "High-value customer but hasn't ordered recently. Bulk buyer.",
     joinDate: "Aug 2023",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    image: null,
   },
   {
     id: 5,
@@ -120,10 +141,10 @@ const INITIAL_CUSTOMERS = [
     totalOrders: 3,
     totalSpent: "₦65,000",
     lastOrder: "5 days ago",
-    status: "active" as const,
-    notes: "New customer. Interested in accessories.",
+    status: "inactive" as const,
+    notes: "Inquired about products but hasn't purchased yet",
     joinDate: "Jan 2024",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+    image: null,
   },
   {
     id: 6,
@@ -134,9 +155,9 @@ const INITIAL_CUSTOMERS = [
     totalSpent: "₦190,000",
     lastOrder: "1 week ago",
     status: "active" as const,
-    notes: "Repeat customer. Prefers phone calls for orders.",
+    notes: "Prefers sneakers and casual wear",
     joinDate: "Sep 2023",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+    image: "/customers/chidi.jpg",
   },
   {
     id: 7,
@@ -167,7 +188,7 @@ const INITIAL_CUSTOMERS = [
   },
 ]
 
-const INITIAL_ORDERS = [
+const INITIAL_ORDERS: Order[] = [
   {
     id: 1,
     orderNumber: "ORD-001234",
@@ -178,35 +199,38 @@ const INITIAL_ORDERS = [
       { productId: 1, productName: "Blue Ankara Dress", quantity: 1, price: "₦15,000" },
       { productId: 3, productName: "Leather Handbag", quantity: 1, price: "₦35,000" },
     ],
-    total: "₦52,000",
+    total: "₦50,000",
     status: "delivered" as const,
     paymentStatus: "paid" as const,
-    orderDate: "2024-01-15",
-    notes: "Customer requested express delivery",
+    orderDate: "2023-12-15",
+    notes: "Gift wrapped",
   },
   {
     id: 2,
     orderNumber: "ORD-001235",
-    customerId: 2,
-    customerName: "Mike Johnson",
-    customerPhone: "+234 802 345 6789",
-    items: [{ productId: 2, productName: "Casual Sneakers", quantity: 1, price: "₦25,000" }],
-    total: "₦27,000",
+    customerId: 3,
+    customerName: "Chioma Eze",
+    customerPhone: "+234 803 456 7890",
+    items: [
+      { productId: 2, productName: "Casual Sneakers", quantity: 3, price: "₦25,000" },
+      { productId: 5, productName: "Wristwatch", quantity: 2, price: "₦22,000" },
+    ],
+    total: "₦119,000",
     status: "shipped" as const,
     paymentStatus: "paid" as const,
-    orderDate: "2024-01-18",
-    notes: "Delivery to office address",
+    orderDate: "2024-01-05",
+    notes: "Express shipping requested",
   },
   {
     id: 3,
     orderNumber: "ORD-001236",
-    customerId: 3,
-    customerName: "Sarah Okafor",
-    customerPhone: "+234 803 456 7890",
-    items: [{ productId: 3, productName: "Leather Handbag", quantity: 1, price: "₦35,000" }],
-    total: "₦37,000",
+    customerId: 2,
+    customerName: "Oluwaseun Olatunji",
+    customerPhone: "+234 802 345 6789",
+    items: [{ productId: 1, productName: "Blue Ankara Dress", quantity: 1, price: "₦15,000" }],
+    total: "₦15,000",
     status: "pending" as const,
-    paymentStatus: "unpaid" as const,
+    paymentStatus: "pending" as const,
     orderDate: "2024-01-20",
     notes: "Waiting for payment confirmation",
   },
@@ -315,164 +339,65 @@ const INITIAL_ORDERS = [
   },
 ]
 
-const AI_CONVERSATIONS = [
-  {
-    id: "1",
-    content: "Show me my sales analytics for this week",
-    sender: "user" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    topic: "Sales Analytics"
-  },
-  {
-    id: "2", 
-    content: "Your sales are looking great this week! You've made ₦45,000 in revenue with 12 orders. The Blue Ankara Dress is your top performer with 5 sales. Would you like me to show you more detailed analytics?",
-    sender: "chidi" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 29), // 29 minutes ago
-    topic: "Sales Analytics"
-  },
-  {
-    id: "3",
-    content: "Which products are running low on stock?",
-    sender: "user" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 25), // 25 minutes ago
-    topic: "Inventory Management"
-  },
-  {
-    id: "4",
-    content: "I can see that your Casual Sneakers are running low with only 3 units left. The Leather Handbag also needs restocking with 2 units remaining. Would you like me to help you create a restock order?",
-    sender: "chidi" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 24), // 24 minutes ago
-    topic: "Inventory Management"
-  },
-  {
-    id: "5",
-    content: "Help me add a new product to my inventory",
-    sender: "user" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    topic: "Product Management"
-  },
-  {
-    id: "6",
-    content: "I'd be happy to help you add a new product! I can guide you through the process. What product would you like to add? Please provide the name, price, and any other details you have.",
-    sender: "chidi" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2 + 1000 * 60), // 2 hours ago + 1 minute
-    topic: "Product Management"
-  },
-  {
-    id: "7",
-    content: "Show me recent customer messages",
-    sender: "user" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-    topic: "Customer Service"
-  },
-  {
-    id: "8",
-    content: "I found 3 new customer messages waiting for your response. Jane asked about the blue dress in size L, Mike inquired about your return policy, and Sarah wants to know about delivery to Port Harcourt. Would you like me to help you draft responses?",
-    sender: "chidi" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4 + 1000 * 60), // 4 hours ago + 1 minute
-    topic: "Customer Service"
-  },
-  {
-    id: "9",
-    content: "What's my best selling product this month?",
-    sender: "user" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    topic: "Sales Performance"
-  },
-  {
-    id: "10",
-    content: "Your best selling product this month is the Blue Ankara Dress with 15 sales totaling ₦225,000 in revenue. It's been very popular with your customers! The Casual Sneakers are second with 12 sales.",
-    sender: "chidi" as const,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 + 1000 * 60), // 1 day ago + 1 minute
-    topic: "Sales Performance"
-  },
-  {
-    id: 7,
-    customer: "Unknown Customer",
-    message: "Hello, I saw your products on Instagram. Are they original?",
-    reply: "",
-    timestamp: "3 hours ago",
-    status: "new",
-    customerInfo: {
-      phone: "+234 808 901 2345",
-      orders: 0,
-      lastOrder: "Never",
-      image: null
-    }
-  },
-  {
-    id: 8,
-    customer: "David Emeka",
-    message: "When will you restock the wireless earbuds?",
-    reply: "We're expecting new stock next week. I'll notify you as soon as they arrive!",
-    timestamp: "1 week ago",
-    status: "replied",
-    customerInfo: {
-      phone: "+234 804 567 8901",
-      orders: 15,
-      lastOrder: "3 months ago",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-    }
-  },
-]
-
 export default function ChidiApp() {
   const [isOnboarded, setIsOnboarded] = useState(false)
   const [userProfile, setUserProfile] = useState({
-    ownerName: "Chidi Okonkwo",
-    email: "chidi@chidi-app.com",
-    phone: "+234 901 234 5678",
-    businessName: "CHIDI Fashion Store",
-    businessType: "Fashion & Accessories",
+    ownerName: "Ade Olanrewaju",
+    email: "ade@example.com",
+    phone: "+234 801 234 5678",
+    businessName: "Ade's Fashion",
+    businessType: "Fashion Retail",
     location: "Lagos, Nigeria",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+    image: "/placeholder-logo.png"
   })
   const [activeTab, setActiveTab] = useState("home")
-  const [products, setProducts] = useState(INITIAL_PRODUCTS)
-  const [customers, setCustomers] = useState(INITIAL_CUSTOMERS)
-  const [orders, setOrders] = useState(INITIAL_ORDERS)
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [editingProduct, setEditingProduct] = useState(null)
   const [isOffline] = useState(false)
   const [currentView, setCurrentView] = useState("main")
-  const [selectedProduct, setSelectedProduct] = useState(null)
-  const [notifications, setNotifications] = useState([])
   const [currentPage, setCurrentPage] = useState("main")
+  
+  // Selected items state
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  
+  // Use the notification hook
+  const { notifications, addNotification, markAsRead, markAllAsRead, dismissNotification } = useNotifications()
+  
+  // Use the product hook
+  const { 
+    products, 
+    addProduct, 
+    updateProduct, 
+    deleteProducts, 
+    setProducts 
+  } = useProducts({ addNotification })
+  
+  // Use the customer hook
+  const { 
+    customers, 
+    addCustomer, 
+    updateCustomer, 
+    updateCustomerStatus, 
+    updateCustomerOrderStats, 
+    setCustomers 
+  } = useCustomers({ addNotification })
+  
+  // Use the order hook
+  const { 
+    orders, 
+    createOrder, 
+    updateOrderStatus, 
+    updatePaymentStatus, 
+    setOrders 
+  } = useOrders({ 
+    addNotification, 
+    updateCustomerStats: updateCustomerOrderStats,
+    products,
+    updateProducts: setProducts
+  })
 
-  useEffect(() => {
-    const checkStockLevels = () => {
-      products.forEach((product) => {
-        const existingStockAlert = notifications.find((n) => n.type === "stock" && n.message.includes(product.name))
-
-        if (product.stock === 0 && !existingStockAlert) {
-          const newNotification = {
-            id: `stock-${product.id}-${Date.now()}`,
-            type: "stock" as const,
-            title: "Out of Stock",
-            message: `${product.name} is completely out of stock`,
-            timestamp: "Just now",
-            read: false,
-            priority: "high" as const,
-          }
-          setNotifications((prev) => [newNotification, ...prev])
-        } else if (product.stock <= 3 && product.stock > 0 && !existingStockAlert) {
-          const newNotification = {
-            id: `stock-${product.id}-${Date.now()}`,
-            type: "stock" as const,
-            title: "Low Stock Alert",
-            message: `${product.name} is running low (${product.stock} units left)`,
-            timestamp: "Just now",
-            read: false,
-            priority: "high" as const,
-          }
-          setNotifications((prev) => [newNotification, ...prev])
-        }
-      })
-    }
-
-    checkStockLevels()
-  }, [products, notifications])
+  // Stock level checking is now handled by the useNotifications hook
 
   const handleEditProduct = (product: any) => {
     setEditingProduct(product)
@@ -480,52 +405,28 @@ export default function ChidiApp() {
   }
 
   const handleAddProduct = (newProduct: any) => {
-    setProducts((prev) => [...prev, newProduct])
-
-    const newNotification = {
-      id: Date.now().toString(),
-      type: "activity" as const,
-      title: "Product Added",
-      message: `${newProduct.name} has been added to your inventory with ${newProduct.stock} units`,
-      timestamp: "Just now",
-      read: false,
-      priority: "low" as const,
-    }
-    setNotifications((prev) => [newNotification, ...prev])
+    // Use the addProduct function from the product hook
+    addProduct(newProduct)
   }
 
   const handleUpdateProduct = (updatedProduct: any) => {
-    setProducts((prev) => prev.map((product) => (product.id === updatedProduct.id ? updatedProduct : product)))
-
-    const originalProduct = products.find((p) => p.id === updatedProduct.id)
-    if (originalProduct && updatedProduct.stock > originalProduct.stock) {
-      const newNotification = {
-        id: Date.now().toString(),
-        type: "activity" as const,
-        title: "Product Restocked",
-        message: `${updatedProduct.name} restocked from ${originalProduct.stock} to ${updatedProduct.stock} units`,
-        timestamp: "Just now",
-        read: false,
-        priority: "medium" as const,
-      }
-      setNotifications((prev) => [newNotification, ...prev])
-    }
+    // Use the updateProduct function from the product hook
+    updateProduct(updatedProduct)
   }
 
   const handleOnboardingComplete = (userData: any) => {
     setUserProfile(userData)
     setIsOnboarded(true)
 
-    const welcomeNotification = {
-      id: `welcome-${Date.now()}`,
-      type: "system" as const,
-      title: "Welcome to CHIDI!",
-      message: `Hi ${userData.ownerName}! Your AI business assistant is ready to help you manage ${userData.businessName}.`,
-      timestamp: "Just now",
-      read: false,
-      priority: "low" as const,
-    }
-    setNotifications((prev) => [welcomeNotification, ...prev])
+    // Use createNotification from the service and addNotification from the hook
+    const welcomeNotification = createNotification(
+      "system",
+      "Welcome to CHIDI!",
+      `Hi ${userData.ownerName}! Your AI business assistant is ready to help you manage ${userData.businessName}.`,
+      "low",
+      `welcome-${Date.now()}`
+    )
+    addNotification(welcomeNotification)
   }
 
   const handleViewProduct = (product: any) => {
@@ -539,30 +440,32 @@ export default function ChidiApp() {
   }
 
   const handleMarkNotificationAsRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+    // Using markAsRead from the hook
+    markAsRead(id)
   }
 
   const handleMarkAllNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    // Using markAllAsRead from the hook
+    markAllAsRead()
   }
 
   const handleDismissNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    // Using dismissNotification from the hook
+    dismissNotification(id)
   }
 
   const handleUpdateProfile = (updatedProfile: any) => {
     setUserProfile(updatedProfile)
 
-    const profileNotification = {
-      id: `profile-${Date.now()}`,
-      type: "system" as const,
-      title: "Profile Updated",
-      message: "Your profile information has been successfully updated",
-      timestamp: "Just now",
-      read: false,
-      priority: "low" as const,
-    }
-    setNotifications((prev) => [profileNotification, ...prev])
+    // Use createNotification from the service and addNotification from the hook
+    const profileNotification = createNotification(
+      "system",
+      "Profile Updated",
+      "Your profile information has been successfully updated",
+      "low",
+      `profile-${Date.now()}`
+    )
+    addNotification(profileNotification)
   }
 
   const handleProfileClick = () => {
@@ -578,25 +481,26 @@ export default function ChidiApp() {
   }
 
   const handleDeleteProducts = (productIds: number[]) => {
-    setProducts((prev) => prev.filter((product) => !productIds.includes(product.id)))
-
-    const deleteNotification = {
-      id: Date.now().toString(),
-      type: "activity" as const,
-      title: "Products Deleted",
-      message: `${productIds.length} product${productIds.length > 1 ? "s" : ""} deleted from inventory`,
-      timestamp: "Just now",
-      read: false,
-      priority: "medium" as const,
-    }
-    setNotifications((prev) => [deleteNotification, ...prev])
+    // Use the deleteProducts function from the product hook
+    deleteProducts(productIds)
   }
 
   const handleSignOut = () => {
+    // Reset app state
     setIsOnboarded(false)
-    setUserProfile(null)
+    setUserProfile({} as any) // Using type assertion to avoid TypeScript error
     setActiveTab("home")
-    setNotifications([])
+    setCurrentView("main")
+    setCurrentPage("main")
+    
+    // Reset selected items
+    setSelectedCustomer(null)
+    setSelectedOrder(null)
+    setSelectedProduct(null)
+    setEditingProduct(null)
+    
+    // Reset feature states using the setters from hooks
+    // No need to reset notifications as it's handled by the hook internally
     setProducts(INITIAL_PRODUCTS)
     setCustomers(INITIAL_CUSTOMERS)
     setOrders(INITIAL_ORDERS)
@@ -611,18 +515,8 @@ export default function ChidiApp() {
   }
 
   const handleAddCustomer = (newCustomer: any) => {
-    setCustomers((prev) => [...prev, newCustomer])
-
-    const newNotification = {
-      id: Date.now().toString(),
-      type: "activity" as const,
-      title: "Customer Added",
-      message: `${newCustomer.name} has been added to your customer list`,
-      timestamp: "Just now",
-      read: false,
-      priority: "low" as const,
-    }
-    setNotifications((prev) => [newNotification, ...prev])
+    // Use the addCustomer function from the customer hook
+    addCustomer(newCustomer)
   }
 
   const handleViewCustomer = (customer: any) => {
@@ -645,67 +539,15 @@ export default function ChidiApp() {
   }
 
   const handleCreateOrder = (newOrder: any) => {
-    setOrders((prev) => [...prev, newOrder])
-
-    // Update product stock
-    newOrder.items.forEach((item: any) => {
-      setProducts((prev) =>
-        prev.map((product) =>
-          product.id === item.productId ? { ...product, stock: product.stock - item.quantity } : product,
-        ),
-      )
-    })
-
-    // Update customer stats
-    setCustomers((prev) =>
-      prev.map((customer) =>
-        customer.id === newOrder.customerId
-          ? {
-              ...customer,
-              totalOrders: customer.totalOrders + 1,
-              totalSpent: `₦${
-                Number.parseInt(customer.totalSpent.replace(/[₦,]/g, "")) +
-                Number.parseInt(newOrder.total.replace(/[₦,]/g, ""))
-              }`,
-              lastOrder: "Just now",
-            }
-          : customer,
-      ),
-    )
-
-    const newNotification = {
-      id: Date.now().toString(),
-      type: "sale" as const,
-      title: "New Order Created",
-      message: `Order #${newOrder.orderNumber} created for ${newOrder.customerName} - ${newOrder.total}`,
-      timestamp: "Just now",
-      read: false,
-      priority: "medium" as const,
-    }
-    setNotifications((prev) => [newNotification, ...prev])
-  }
-
-  const handleViewOrder = (order: any) => {
-    setSelectedOrder(order)
-    setCurrentView("order-detail")
+    // Use the createOrder function from the order hook
+    // This will automatically update customer stats and product stock
+    createOrder(newOrder)
   }
 
   const handleUpdateOrderStatus = (orderId: number, status: string) => {
-    setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status } : order)))
-
-    const order = orders.find((o) => o.id === orderId)
-    if (order) {
-      const newNotification = {
-        id: Date.now().toString(),
-        type: "activity" as const,
-        title: "Order Status Updated",
-        message: `Order #${order.orderNumber} status changed to ${status}`,
-        timestamp: "Just now",
-        read: false,
-        priority: "low" as const,
-      }
-      setNotifications((prev) => [newNotification, ...prev])
-    }
+    // Use the updateOrderStatus function from the order hook
+    // This will automatically create a notification
+    updateOrderStatus(orderId, status as OrderStatus)
   }
 
   const handleBackToOrders = () => {
@@ -715,6 +557,11 @@ export default function ChidiApp() {
 
   const handleShowCreateOrder = () => {
     setCurrentPage("create-order")
+  }
+  
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order)
+    setCurrentView("order-detail")
   }
 
   const handleManageTemplates = () => {
@@ -769,7 +616,7 @@ export default function ChidiApp() {
   }
 
   if (currentPage === "conversations") {
-    return <ConversationsPage onBack={handleBackToMain} conversations={AI_CONVERSATIONS} />
+    return <ConversationsPage onBack={handleBackToMain} conversations={INITIAL_CONVERSATIONS} />
   }
 
   if (currentPage === "quick-edit") {
