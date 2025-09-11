@@ -7,31 +7,132 @@ import { WifiOff, Bell } from "lucide-react"
 import { BottomNav } from "@/features/shared/layout"
 import { HomeTab } from "@/features/home/components"
 import { CatalogTab, AddProductPage, ProductDetailPage, QuickEditPage } from "@/features/catalogue/components"
-import { SalesTab, RevenueDashboardPage } from "@/features/sales/components"
 import { ConversationsPage } from "@/features/chat/components"
 import { NotificationsPage } from "@/features/notifications/components"
-import { OrdersTab, OrderDetailPage, CreateOrderPage } from "@/features/orders/components"
-import { CustomersTab, AddCustomerPage } from "@/features/customers/components"
-import { CustomerDetailPage } from "@/features/customers/components/customer-detail-page"
 import { SettingsTab, BusinessHoursPage, TemplateResponsesPage, IntegrationSimulationPage, DataExportPage } from "@/features/settings/components"
 import { Onboarding, ProfileEditPage } from "@/features/user/components"
 
+// Feature flag system
+import { useFeatureFlags } from "@/features/shared/hooks/use-feature-flags"
+
 // Import types from feature modules
-import { Notification } from "@/features/notifications/types";
-import { useNotifications } from "@/features/notifications/hooks/useNotifications";
-import { createNotification } from "@/features/notifications/services/notification-service";
-import { Product, INITIAL_PRODUCTS } from "@/features/catalogue/types";
-import { useProducts } from "@/features/catalogue/hooks/useProducts";
-import { Customer, INITIAL_CUSTOMERS } from "@/features/customers/types";
-import { useCustomers } from "@/features/customers/hooks/useCustomers";
-import { Order, INITIAL_ORDERS } from "@/features/orders/types";
-import { useOrders } from "@/features/orders/hooks/useOrders";
-import { INITIAL_CONVERSATIONS } from "@/features/chat/types";
+import { Notification } from "@/features/notifications/types"
+import { useNotifications } from "@/features/notifications/hooks/useNotifications"
+import { createNotification } from "@/features/notifications/services/notification-service"
+import { Product, INITIAL_PRODUCTS } from "@/features/catalogue/types"
+import { useProducts } from "@/features/catalogue/hooks/useProducts"
+import { INITIAL_CONVERSATIONS } from "@/features/chat/types"
+
+// TODO: These features are shelved for v2
+// Import shelved features conditionally
+import type { Customer as CustomerType, Order as OrderType } from "@/features/shared/types/shelved-types"
+
+// Lazy load shelved feature components
+// TODO: These features are shelved for v2
+const SalesTab = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('SALES')) return null;
+  
+  // We're using dynamic import with require to avoid bundling these components
+  // when the feature flag is disabled
+  try {
+    const SalesTabComponent = require('@/features/sales/components').SalesTab;
+    return <SalesTabComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
+
+const RevenueDashboardPage = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('SALES')) return null;
+  
+  try {
+    const RevenueDashboardPageComponent = require('@/features/sales/components').RevenueDashboardPage;
+    return <RevenueDashboardPageComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
+
+const OrdersTab = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('ORDERS')) return null;
+  
+  try {
+    const OrdersTabComponent = require('@/features/orders/components').OrdersTab;
+    return <OrdersTabComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
+
+const OrderDetailPage = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('ORDERS')) return null;
+  
+  try {
+    const OrderDetailPageComponent = require('@/features/orders/components').OrderDetailPage;
+    return <OrderDetailPageComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
+
+const CreateOrderPage = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('ORDERS')) return null;
+  
+  try {
+    const CreateOrderPageComponent = require('@/features/orders/components').CreateOrderPage;
+    return <CreateOrderPageComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
+
+const CustomersTab = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('CUSTOMERS')) return null;
+  
+  try {
+    const CustomersTabComponent = require('@/features/customers/components').CustomersTab;
+    return <CustomersTabComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
+
+const AddCustomerPage = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('CUSTOMERS')) return null;
+  
+  try {
+    const AddCustomerPageComponent = require('@/features/customers/components').AddCustomerPage;
+    return <AddCustomerPageComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
+
+const CustomerDetailPage = ({ ...props }: any) => {
+  const { isEnabled } = useFeatureFlags();
+  if (!isEnabled('CUSTOMERS')) return null;
+  
+  try {
+    const CustomerDetailPageComponent = require('@/features/customers/components/customer-detail-page').CustomerDetailPage;
+    return <CustomerDetailPageComponent {...props} />;
+  } catch (e) {
+    return null;
+  }
+};
 
 
 
 
 export default function ChidiApp() {
+  // Use feature flags to conditionally load shelved features
+  const { isEnabled } = useFeatureFlags();
   const [isOnboarded, setIsOnboarded] = useState(false)
   const [userProfile, setUserProfile] = useState({
     ownerName: "Ade Olanrewaju",
@@ -48,8 +149,8 @@ export default function ChidiApp() {
   const [currentPage, setCurrentPage] = useState("main")
   
   // Selected items state
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   
@@ -65,34 +166,15 @@ export default function ChidiApp() {
     setProducts 
   } = useProducts({ addNotification })
   
-  // Use the customer hook
-  const { 
-    customers, 
-    addCustomer,  
-    updateCustomerOrderStats, 
-    setCustomers 
-  } = useCustomers({ addNotification })
+  // Initialize state for shelved features with empty defaults
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   
-  // Use the order hook
-  // Convert order status to match the expected format for the hook
-  const formattedInitialOrders = INITIAL_ORDERS.map(order => ({
-    ...order,
-    // Ensure the status is compatible with the app's expected types
-    status: order.status as any
-  }))
-
-  const { 
-    orders, 
-    createOrder, 
-    updateOrderStatus, 
-    setOrders 
-  } = useOrders({ 
-    addNotification, 
-    updateCustomerStats: updateCustomerOrderStats,
-    products,
-    updateProducts: setProducts,
-    initialOrders: formattedInitialOrders as any
-  })
+  // Initialize handler functions with empty defaults
+  const addCustomer = (_newCustomer: any) => {};
+  const updateCustomerOrderStats = (_customerId: any, _stats: any) => {};
+  const createOrder = (_order: any) => {};
+  const updateOrderStatus = (_orderId: any, _status: any) => {};
 
   // Stock level checking is now handled by the useNotifications hook
 
@@ -199,15 +281,10 @@ export default function ChidiApp() {
     // Reset feature states using the setters from hooks with imported initial data
     // No need to reset notifications as it's handled by the hook internally
     setProducts(INITIAL_PRODUCTS)
-    setCustomers(INITIAL_CUSTOMERS)
     
-    // Convert order status to match the expected format
-    const formattedOrders = INITIAL_ORDERS.map(order => ({
-      ...order,
-      // Ensure the status is compatible with the app's expected types
-      status: order.status as any
-    }))
-    setOrders(formattedOrders)
+    // Reset shelved features to empty arrays
+    setCustomers([])
+    setOrders([])
   }
 
   const handleShowConversations = () => {
@@ -219,8 +296,10 @@ export default function ChidiApp() {
   }
 
   const handleAddCustomer = (newCustomer: any) => {
-    // Use the addCustomer function from the customer hook
-    addCustomer(newCustomer)
+    // This is a no-op when the CUSTOMERS feature is disabled
+    if (isEnabled('CUSTOMERS')) {
+      addCustomer(newCustomer);
+    }
   }
 
   const handleViewCustomer = (customer: any) => {
@@ -243,19 +322,23 @@ export default function ChidiApp() {
   }
 
   const handleCreateOrder = (newOrder: any) => {
-    // Use the createOrder function from the order hook
-    // Ensure the status is compatible with the app's expected types
-    const formattedOrder = {
-      ...newOrder,
-      status: newOrder.status as any
+    // This is a no-op when the ORDERS feature is disabled
+    if (isEnabled('ORDERS')) {
+      // Ensure the status is compatible with the app's expected types
+      const formattedOrder = {
+        ...newOrder,
+        status: newOrder.status as any
+      }
+      createOrder(formattedOrder);
     }
-    createOrder(formattedOrder)
   }
 
   const handleUpdateOrderStatus = (orderId: number, status: string) => {
-    // Use the updateOrderStatus function from the order hook
-    // This will automatically create a notification
-    updateOrderStatus(orderId, status as any)
+    // This is a no-op when the ORDERS feature is disabled
+    if (isEnabled('ORDERS')) {
+      // This will automatically create a notification when the feature is enabled
+      updateOrderStatus(orderId, status as any);
+    }
   }
 
   const handleBackToOrders = () => {
@@ -267,7 +350,7 @@ export default function ChidiApp() {
     setCurrentPage("create-order")
   }
   
-  const handleViewOrder = (order: Order) => {
+  const handleViewOrder = (order: any) => {
     setSelectedOrder(order)
     setCurrentView("order-detail")
   }
@@ -339,15 +422,15 @@ export default function ChidiApp() {
     return <QuickEditPage onBack={handleBackToMain} product={editingProduct} onUpdateProduct={handleUpdateProduct} />
   }
 
-  if (currentPage === "add-customer") {
-    return <AddCustomerPage onBack={handleBackToMain} onAddCustomer={handleAddCustomer} />
+  if (currentPage === "add-customer" && isEnabled('CUSTOMERS')) {
+    return <AddCustomerPage onBack={handleBackToMain} onAddCustomer={addCustomer} />
   }
 
-  if (currentPage === "create-order") {
+  if (currentPage === "create-order" && isEnabled('ORDERS')) {
     return (
       <CreateOrderPage
         onBack={handleBackToMain}
-        onCreateOrder={handleCreateOrder}
+        onCreateOrder={createOrder}
         products={products}
         customers={customers}
       />
@@ -429,11 +512,12 @@ export default function ChidiApp() {
             ) : null}
           </>
         )}
-        {activeTab === "sales" && (
+        {/* TODO: Sales feature shelved for v2 */}
+        {activeTab === "sales" && isEnabled('SALES') && (
           <>
             {currentView === "main" ? (
               <SalesTab
-                orders={orders as any}
+                orders={orders}
                 customers={customers}
                 products={products}
                 onViewOrders={() => setCurrentView("orders")}
@@ -441,38 +525,38 @@ export default function ChidiApp() {
                 onViewRevenue={() => setCurrentView("revenue")}
                 onAddOrder={handleShowCreateOrder}
                 onViewOrder={handleViewOrder}
-                onUpdateOrderStatus={handleUpdateOrderStatus}
+                onUpdateOrderStatus={updateOrderStatus}
                 onAddCustomer={handleShowAddCustomer}
                 onViewCustomer={handleViewCustomer}
                 onEditCustomer={handleEditCustomer}
               />
             ) : currentView === "orders" ? (
               <OrdersTab
-                orders={orders as any}
+                orders={orders}
                 customers={customers}
                 products={products}
                 onAddOrder={handleShowCreateOrder}
                 onViewOrder={handleViewOrder}
-                onUpdateOrderStatus={handleUpdateOrderStatus}
+                onUpdateOrderStatus={updateOrderStatus}
               />
             ) : currentView === "customers" ? (
               <CustomersTab
-                customers={customers as any}
+                customers={customers}
                 onAddCustomer={handleShowAddCustomer}
                 onViewCustomer={handleViewCustomer}
                 onEditCustomer={handleEditCustomer}
               />
             ) : currentView === "revenue" ? (
               <RevenueDashboardPage
-                orders={orders as any}
+                orders={orders}
                 customers={customers}
                 products={products}
                 onBack={() => setCurrentView("main")}
               />
             ) : currentView === "customer-detail" ? (
               <CustomerDetailPage
-                customer={selectedCustomer as any}
-                orders={orders.filter((order) => order.customerId === selectedCustomer?.id) as any}
+                customer={selectedCustomer}
+                orders={orders.filter((order) => order.customerId === selectedCustomer?.id)}
                 onBack={handleBackToCustomers}
                 onCreateOrder={() => {
                   setCurrentView("main")
@@ -481,9 +565,9 @@ export default function ChidiApp() {
               />
             ) : currentView === "order-detail" ? (
               <OrderDetailPage
-                order={selectedOrder as any}
+                order={selectedOrder}
                 onBack={handleBackToOrders}
-                onUpdateStatus={handleUpdateOrderStatus}
+                onUpdateStatus={updateOrderStatus}
               />
             ) : null}
           </>
